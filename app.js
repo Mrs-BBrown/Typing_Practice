@@ -6,7 +6,7 @@
       WRITE_URL: "https://script.google.com/macros/s/AKfycbwhibQXZeY4_pJUYe33tOmzeKZunxiEOWpubD-tTwVlyW_-lurlVXTg0MOMVSLt_7E/exec",
       READ_URL:  "https://script.google.com/macros/s/AKfycbwhibQXZeY4_pJUYe33tOmzeKZunxiEOWpubD-tTwVlyW_-lurlVXTg0MOMVSLt_7E/exec?mode=read",
       SENTENCE_UPLOAD_URL: "https://script.google.com/macros/s/AKfycbwhibQXZeY4_pJUYe33tOmzeKZunxiEOWpubD-tTwVlyW_-lurlVXTg0MOMVSLt_7E/exec?mode=uploadSentences",
-      SHARED_TOKEN: "Unity77"
+      SHARED_TOKEN: "Unity77",
       READ_TOKEN:  "Unity77"   
     };
 
@@ -502,6 +502,7 @@ function escapeHtml(s){
   }); // DOMContentLoaded
 
 })(); // IIFE
+
 
 
 
