@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DevTyper — Coding Symbols Typing Practice</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="appbar">
+    <div class="logo">DevTyper <span class="muted">• Coding Symbols Trainer</span></div>
+    <nav class="nav">
+      <button class="btn ghost" data-goto="view-home">Home</button>
+      <button class="btn ghost" data-goto="view-student">Student</button>
+      <button class="btn ghost" data-goto="view-teacher">Teacher</button>
+      <button id="printBtn" class="btn">Print Summary</button>
+      <button id="accessBtn" class="btn">Accessibility</button>
+    </nav>
+  </header>
+
+  <div class="container">
+    <!-- HOME VIEW -->
+    <section id="view-home" class="view active">
+      <div class="grid cols-2">
+        <div class="card">
+          <h2>Welcome</h2>
+          <p class="muted">Practice typing with real developer symbols — brackets, braces, slashes, pipes, angle brackets, quotes, and more. Choose 25 sentences or a timed mode. Live WPM, accuracy, and a key-by-key heatmap help you improve.</p>
+          <div class="row" style="margin-top: 10px;">
+            <button class="btn primary" data-goto="view-student">I'm a Student</button>
+            <button class="btn" data-goto="view-teacher">I'm a Teacher</button>
+          </div>
+          <div class="toolbar" style="margin-top:14px;">
+            <span class="tag">Focus Guard</span>
+            <span class="tag">Per‑Key Heatmap</span>
+            <span class="tag">AM/PM Class Filter</span>
+            <span class="tag">CSV Export</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Session Watermark & Timestamp</h3>
+          <p class="muted">Each session includes a unique ID and precise timestamp to prevent screenshot reuse. Teachers can verify on the dashboard.</p>
+          <div class="row">
+            <div class="metric small">
+              <div class="muted">Current Date</div>
+              <div id="nowDate" class="big">—</div>
+            </div>
+            <div class="metric small">
+              <div class="muted">Current Time</div>
+              <div id="nowTime" class="big">—</div>
+            </div>
+            <div class="metric small">
+              <div class="muted">Example Session ID</div>
+              <div id="nowHash" class="big">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- STUDENT VIEW -->
+   <section id="view-student" class="view">
+      <div class="grid cols-2">
+        <div class="card">
+          <h2>Start a Session</h2>
+          <div class="field">
+            <label for="studentName">Your Name</label>
+            <input id="studentName" class="input" placeholder="First Last" />
+          </div>
+          <div class="row">
+            <div class="field">
+              <label for="classPeriod">Class Period</label>
+              <select id="classPeriod">
+                <option value="AM">AM</option>
+                <option value="PM">PM</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="mode">Mode</label>
+              <select id="mode">
+                <option value="sentences">25 Sentences</option>
+                <option value="time-180">Timed: 3 minutes</option>
+                <option value="time-300">Timed: 5 minutes</option>
+                <option value="time-600">Timed: 10 minutes</option>
+              </select>
+            </div>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label for="goalWpm">Target WPM</label>
+              <input id="goalWpm" type="number" class="input" placeholder="e.g., 25" />
+            </div>
+            <div class="field">
+              <label for="goalAcc">Target Accuracy %</label>
+              <input id="goalAcc" type="number" class="input" placeholder="e.g., 92" />
+            </div>
+          </div>
+          <div class="row">
+            <button id="startBtn" class="btn primary">Start Session</button>
+            <button id="resetBtn" class="btn">Reset</button>
+          </div>
+          <p class="muted">Timestamp is pinned during the session. Focus Guard pauses the timer when you switch tabs.</p>
+        </div>
+
+  <div class="card">
+          <h3>Accessibility</h3>
+          <div class="row">
+            <label><input type="checkbox" id="hcToggle"> High‑contrast mode</label>
+            <label><input type="checkbox" id="dysToggle"> Dyslexic‑friendly font</label>
+            <label><input type="checkbox" id="bigFont"> Larger text</label>
+          </div>
+          <h3 style="margin-top:16px;">Upload a custom sentence bank (CSV)</h3>
+          <input type="file" id="csvUpload" accept=".csv" />
+          <p class="muted">Optional. If provided by your teacher, you can practice with a custom set for this session only.</p>
+        </div>
+      </div>
+
+  <div id="sessionArea" class="card" style="margin-top: 16px; display:none;">
+        <div class="row" style="justify-content: space-between; align-items: flex-start;">
+          <div>
+            <div class="muted">Student</div>
+            <div><strong id="uiStudent">—</strong> • <span id="uiClass">—</span></div>
+          </div>
+          <div class="muted">
+            <div>Started: <span id="uiStart"></span></div>
+            <div>Session ID: <span id="uiSession"></span></div>
+          </div>
+        </div>
+
+  <div class="metrics" style="margin: 14px 0;">
+          <div class="metric"><div class="muted">WPM</div><div id="mWpm" class="big">0</div></div>
+          <div class="metric"><div class="muted">Accuracy</div><div id="mAcc" class="big">100%</div></div>
+          <div class="metric"><div class="muted">Errors</div><div id="mErr" class="big">0</div></div>
+          <div class="metric"><div class="muted">Elapsed</div><div id="mTime" class="big">0s</div></div>
+        </div>
+
+  <div class="typing-box" id="typingBox" aria-live="polite">
+          <div id="sentenceIdx" class="muted"></div>
+          <div id="sentence" style="margin-top:8px; word-wrap: break-word;"></div>
+        </div>
+
+  <div class="controls" style="margin-top: 12px;">
+          <button id="pauseBtn" class="btn">Pause</button>
+          <button id="nextBtn" class="btn">Skip Sentence</button>
+          <button id="endBtn" class="btn warn">End Session</button>
+        </div>
+
+  <div style="margin-top:12px;" class="muted">Type directly — no input box needed. Your keystrokes are captured here.</div>
+
+  <div style="margin-top:16px;" class="kbd" id="kbd"></div>
+      </div>
+
+  <div id="summaryArea" class="card" style="margin-top: 16px; display:none;">
+        <h2>Session Summary</h2>
+        <div class="summary">
+          <div class="row">
+            <div class="metric"><div class="muted">WPM</div><div id="sWpm" class="big">—</div></div>
+            <div class="metric"><div class="muted">Accuracy</div><div id="sAcc" class="big">—</div></div>
+            <div class="metric"><div class="muted">Errors</div><div id="sErr" class="big">—</div></div>
+            <div class="metric"><div class="muted">Duration</div><div id="sDur" class="big">—</div></div>
+          </div>
+          <div class="row">
+            <div class="metric small"><div class="muted">Name</div><div id="sName" class="big">—</div></div>
+            <div class="metric small"><div class="muted">Class</div><div id="sClass" class="big">—</div></div>
+            <div class="metric small"><div class="muted">Date</div><div id="sDate" class="big">—</div></div>
+            <div class="metric small"><div class="muted">Time</div><div id="sTime" class="big">—</div></div>
+            <div class="metric small"><div class="muted">Session ID</div><div id="sSid" class="big">—</div></div>
+          </div>
+          <div class="toolbar">
+            <button id="postResultsBtn" class="btn primary">Submit to Teacher</button>
+            <button id="restartBtn" class="btn">Start New Session</button>
+          </div>
+          <h3>Per‑Key Heatmap</h3>
+          <div class="kbd heatmap" id="heatmap"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TEACHER VIEW -->
+  <section id="view-teacher" class="view">
+      <div class="card">
+        <h2>Teacher Dashboard</h2>
+        <p class="muted">This dashboard reads from your Google Sheet via an Apps Script endpoint. Access is restricted to your Google account. If you see an auth error, open the endpoint link in a new tab and authorize, then return here and refresh.</p>
+        <div class="row">
+          <div class="field">
+            <label for="filterName">Filter by student name</label>
+            <input id="filterName" class="input" placeholder="e.g., Alice" />
+          </div>
+          <div class="field">
+            <label for="filterClass">Class</label>
+            <select id="filterClass">
+              <option value="">All</option>
+              <option value="AM">AM</option>
+              <option value="PM">PM</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="filterFrom">From</label>
+            <input id="filterFrom" type="date" class="input" />
+          </div>
+          <div class="field">
+            <label for="filterTo">To</label>
+            <input id="filterTo" type="date" class="input" />
+          </div>
+          <div class="field">
+            <label for="filterWpm">Min WPM</label>
+            <input id="filterWpm" type="number" class="input" />
+          </div>
+          <div class="field">
+            <label for="filterAcc">Min Acc %</label>
+            <input id="filterAcc" type="number" class="input" />
+          </div>
+        </div>
+        <div class="row" style="margin-top: 8px;">
+          <button id="refreshBtn" class="btn">Refresh</button>
+          <button id="exportAllBtn" class="btn primary">Export All CSV</button>
+          <button id="exportFilteredBtn" class="btn">Export Filtered CSV</button>
+        </div>
+      </div>
+
+  <div class="card" style="margin-top: 16px;">
+        <div class="row" style="justify-content: space-between;">
+          <div class="muted">Rows: <span id="rowCount">0</span></div>
+          <div class="muted">Sheet: <span id="sheetName">Results</span></div>
+        </div>
+        <div style="overflow:auto;">
+          <table id="table">
+            <thead>
+              <tr>
+                <th>Name</th><th>Class</th><th>Date</th><th>Time</th>
+                <th>WPM</th><th>Accuracy</th><th>Errors</th><th>Duration(s)</th><th>Sentences</th><th>Mode</th><th>Session ID</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+  <div class="card teacher-only" style="margin-top:16px;">
+        <h3>Sentence Bank</h3>
+        <p class="muted">Upload a CSV to update the backend sentence bank (optional). Requires Apps Script write scope and teacher email.</p>
+        <div class="row">
+          <input type="file" id="csvUploadTeacher" accept=".csv" />
+          <button id="uploadSentencesBtn" class="btn">Upload to Sheet</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Focus Guard Overlay -->
+  <div id="focusOverlay" class="overlay" role="dialog" aria-modal="true">
+    <div class="panel">
+      <h2>Paused</h2>
+      <p class="muted">The timer pauses when this tab loses focus. Click resume when you're ready.</p>
+      <button id="resumeBtn" class="btn primary">Resume</button>
+    </div>
+  </div>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
+
