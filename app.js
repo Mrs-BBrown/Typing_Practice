@@ -392,42 +392,76 @@ $('#refreshBtn').addEventListener('click', loadResults);
 $('#exportAllBtn').addEventListener('click', () => exportRows(window.__rows || [], 'all_results.csv'));
 $('#exportFilteredBtn').addEventListener('click', () => exportRows(getFiltered(), 'filtered_results.csv'));
 
+const CONFIG = {
+  WRITE_URL: "https://script.google.com/macros/s/AKfycbwhibQXZeY4_pJUYe33tOmzeKZunxiEOWpubD-tTwVlyW_-lurlVXTg0MOMVSLt_7E/exec",
+  READ_URL:  "https://script.google.com/macros/s/AKfycbwhibQXZeY4_pJUYe33tOmzeKZunxiEOWpubD-tTwVlyW_-lurlVXTg0MOMVSLt_7E/exec?mode=read",
+  SENTENCE_UPLOAD_URL: "https://script.google.com/macros/s/AKfycbwhibQXZeY4_pJUYe33tOmzeKZunxiEOWpubD-tTwVlyW_-lurlVXTg0MOMVSLt_7E/exec?mode=uploadSentences",
+  SHARED_TOKEN: "Unity77",
+  READ_TOKEN:   "Unity77"   // must match Code.gs READ_TOKEN
+};
+(If your deployment URL changed after redeploy, paste the new one in all three.)
+
+2) Replace your loadResults() with JSONP (no CORS, includes token)
+Find your existing loadResults() in app.js and replace the whole function with this:
+
+js
+Copy code
 async function loadResults(){
   return new Promise((resolve, reject) => {
     const cb = 'read_cb_' + Date.now() + '_' + Math.floor(Math.random()*1e6);
     const script = document.createElement('script');
 
+    let done = false;
+    const cleanup = (ok) => {
+      if (done) return;
+      done = true;
+      delete window[cb];
+      script.remove();
+      ok ? resolve() : reject(new Error('JSONP failed'));
+    };
+
+    // Timeout if the callback never runs (e.g., Forbidden/token mismatch)
+    const t = setTimeout(() => {
+      console.error('JSONP timeout — check READ_TOKEN and deployment URL.');
+      alert('Failed to load results. Check READ_TOKEN and that Code.gs is redeployed.');
+      cleanup(false);
+    }, 6000);
+
+    // Install the callback
     window[cb] = (data) => {
+      clearTimeout(t);
       try {
         window.__rows = (data && data.rows) || [];
         renderTable(window.__rows);
         resolve();
       } catch (err) {
-        reject(err);
+        console.error('Render error', err);
+        alert('Loaded results, but failed to render.');
+        cleanup(false);
       } finally {
         delete window[cb];
         script.remove();
       }
     };
 
-    // Build URL: add callback + READ_TOKEN
-    const base = CONFIG.READ_URL;
+    // Build URL: READ_URL + callback + READ_TOKEN
+    const base = CONFIG.READ_URL; // should already end with '?mode=read'
     const sep  = base.includes('?') ? '&' : '?';
     const url  = base + sep + 'callback=' + encodeURIComponent(cb) +
                  '&token=' + encodeURIComponent(CONFIG.READ_TOKEN);
 
+    console.log('Loading results via JSONP:', url);
     script.src = url;
     script.onerror = () => {
-      delete window[cb];
-      script.remove();
+      clearTimeout(t);
+      console.error('Script load error for JSONP');
       alert('Failed to load results. Are you signed into your Google account with access?');
-      reject(new Error('JSONP load error'));
+      cleanup(false);
     };
 
     document.body.appendChild(script);
   });
 }
-
 function renderTable(rows){
   const tbody = document.querySelector('#table tbody');
   if (!tbody) return;
@@ -502,6 +536,7 @@ function escapeHtml(s){
   }); // DOMContentLoaded
 
 })(); // IIFE
+
 
 
 
