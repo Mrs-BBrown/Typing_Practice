@@ -346,29 +346,32 @@ document.addEventListener('keyup', (e) => {
 
     $('#postResultsBtn').addEventListener('click', async () => {
   const minutes = state.elapsed / 60;
-  const wpm = minutes > 0 ? Math.round((state.correct/5)/minutes) : 0;
-  const acc = state.typed > 0 ? Math.max(0, Math.round((state.correct/state.typed) * 100)) : 100;
+  const wpm = minutes > 0 ? Math.round((state.correct / 5) / minutes) : 0;
+  const acc = state.typed > 0 ? Math.max(0, Math.round((state.correct / state.typed) * 100)) : 100;
 
-  const body = {
-    token: CONFIG.SHARED_TOKEN,
-    name: state.studentName,
-    classPeriod: state.classPeriod,
-    wpm, accuracy: acc, errors: state.errors,
-    duration: Math.floor(state.elapsed),
-    sentences: state.mode === 'sentences' ? Math.min(state.sentenceIndex, state.totalSentences) : state.sentenceIndex,
-    mode: state.mode,
-    sessionId: state.sessionId,
-    userAgent: navigator.userAgent
-  };
+  // Build form data (simple request → no CORS preflight)
+  const form = new URLSearchParams();
+  form.append('token', CONFIG.SHARED_TOKEN);
+  form.append('name', state.studentName);
+  form.append('classPeriod', state.classPeriod);
+  form.append('wpm', String(wpm));
+  form.append('accuracy', String(acc));
+  form.append('errors', String(state.errors));
+  form.append('duration', String(Math.floor(state.elapsed)));
+  form.append('sentences', String(state.mode === 'sentences'
+    ? Math.min(state.sentenceIndex, state.totalSentences)
+    : state.sentenceIndex));
+  form.append('mode', state.mode);
+  form.append('sessionId', state.sessionId);
+  form.append('userAgent', navigator.userAgent);
 
   try {
-    const res = await fetch(CONFIG.WRITE_URL, {
+    const res = await fetch(CONFIG.WRITE_URL + '?mode=write', {
       method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(body)
+      body: form // no headers on purpose
     });
 
-    const text = await res.text(); // raw response helps us see the real error
+    const text = await res.text(); // raw text to surface server messages
     if (!res.ok) {
       console.error('Submit error', res.status, text);
       alert('Submit failed: ' + text);
@@ -381,7 +384,7 @@ document.addEventListener('keyup', (e) => {
     console.error(err);
     alert('Network or script error submitting results.');
   }
-    });
+});
 
     // ===== Teacher dashboard =====
 $('#refreshBtn').addEventListener('click', loadResults);
@@ -475,3 +478,4 @@ function escapeHtml(s){
   }); // DOMContentLoaded
 
 })(); // IIFE
+
