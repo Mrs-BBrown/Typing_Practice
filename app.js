@@ -7,6 +7,7 @@
       READ_URL:  "https://script.google.com/macros/s/AKfycbwhibQXZeY4_pJUYe33tOmzeKZunxiEOWpubD-tTwVlyW_-lurlVXTg0MOMVSLt_7E/exec?mode=read",
       SENTENCE_UPLOAD_URL: "https://script.google.com/macros/s/AKfycbwhibQXZeY4_pJUYe33tOmzeKZunxiEOWpubD-tTwVlyW_-lurlVXTg0MOMVSLt_7E/exec?mode=uploadSentences",
       SHARED_TOKEN: "Unity77"
+      READ_TOKEN:  "Unity77"   
     };
 
     // ===== Helpers =====
@@ -392,16 +393,39 @@ $('#exportAllBtn').addEventListener('click', () => exportRows(window.__rows || [
 $('#exportFilteredBtn').addEventListener('click', () => exportRows(getFiltered(), 'filtered_results.csv'));
 
 async function loadResults(){
-  try{
-    const res = await fetch(CONFIG.READ_URL, { method:'GET', credentials:'include' });
-    if(!res.ok) throw new Error('Auth or network error');
-    const data = await res.json();
-    window.__rows = data.rows || [];
-    renderTable(window.__rows);
-  }catch(err){
-    alert('Failed to load results. Are you signed into your Google account with access?');
-    console.error(err);
-  }
+  return new Promise((resolve, reject) => {
+    const cb = 'read_cb_' + Date.now() + '_' + Math.floor(Math.random()*1e6);
+    const script = document.createElement('script');
+
+    window[cb] = (data) => {
+      try {
+        window.__rows = (data && data.rows) || [];
+        renderTable(window.__rows);
+        resolve();
+      } catch (err) {
+        reject(err);
+      } finally {
+        delete window[cb];
+        script.remove();
+      }
+    };
+
+    // Build URL: add callback + READ_TOKEN
+    const base = CONFIG.READ_URL;
+    const sep  = base.includes('?') ? '&' : '?';
+    const url  = base + sep + 'callback=' + encodeURIComponent(cb) +
+                 '&token=' + encodeURIComponent(CONFIG.READ_TOKEN);
+
+    script.src = url;
+    script.onerror = () => {
+      delete window[cb];
+      script.remove();
+      alert('Failed to load results. Are you signed into your Google account with access?');
+      reject(new Error('JSONP load error'));
+    };
+
+    document.body.appendChild(script);
+  });
 }
 
 function renderTable(rows){
@@ -478,5 +502,6 @@ function escapeHtml(s){
   }); // DOMContentLoaded
 
 })(); // IIFE
+
 
 
